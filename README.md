@@ -9,3 +9,4 @@ Configurable PUID (user ID) and PGID (group ID) via environment variables.
 
 Mosquitto runs under a new user capmqtt instead of the built-in mosquitto user, avoiding UID conflicts.
 
+See https://hub.docker.com/_/eclipse-mosquitto for further configuration refenrences
