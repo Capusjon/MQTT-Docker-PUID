@@ -21,8 +21,8 @@ Features
 
 Environment Variables
 
-Default
-
+**Default
+**
 PUID:1000
 
 UID to run Mosquitto as inside the container.
@@ -48,4 +48,5 @@ persistence_interval 60 (for testing only, afterwards revert to a timing you fin
 
 You can find these settings commented out in the default conf file.
 Use this conf file if no file is present in your config folder https://github.com/Capusjon/MQTT-Docker-PUID/blob/main/mosquitto/config/mosquitto.conf
+
 
