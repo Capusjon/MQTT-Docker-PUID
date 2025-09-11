@@ -6,17 +6,23 @@ PUID=${PUID:-1000}
 PGID=${PGID:-1000}
 
 # Create group if it doesn't exist
-if ! getent group mosquitto >/dev/null 2>&1; then
-    addgroup -g "$PGID" mosquitto
+if ! getent group capmqtt >/dev/null 2>&1; then
+    addgroup -g "$PGID" capmqtt
 fi
 
 # Create user if it doesn't exist
-if ! id -u mosquitto >/dev/null 2>&1; then
-    adduser -D -u "$PUID" -G mosquitto mosquitto
+if ! id capmqtt >/dev/null 2>&1; then
+    adduser -D -u "$PUID" -G capmqtt capmqtt
 fi
 
-# Ensure correct ownership of mounted volumes
+# Ensure ownership of volumes
 chown -R "$PUID:$PGID" /mosquitto/config /mosquitto/data /mosquitto/log
 
-# Run Mosquitto as mosquitto user
-exec su-exec mosquitto "$@"
+# Fix pwfile if it exists
+if [ -f /mosquitto/config/pwfile ]; then
+    chown "$PUID:$PGID" /mosquitto/config/pwfile
+    chmod 0700 /mosquitto/config/pwfile
+fi
+
+# Run Mosquitto as capmqtt
+exec su-exec capmqtt "$@"

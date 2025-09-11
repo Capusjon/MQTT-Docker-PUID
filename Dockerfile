@@ -1,4 +1,3 @@
-# Base image
 FROM eclipse-mosquitto:latest
 
 # Install su-exec for dropping privileges
