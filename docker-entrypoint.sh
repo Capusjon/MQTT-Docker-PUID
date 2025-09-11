@@ -5,20 +5,26 @@ set -e
 PUID=${PUID:-1000}
 PGID=${PGID:-1000}
 
-# Create group if it doesn't exist
-if ! getent group capmqtt >/dev/null 2>&1; then
+# Check if a group with the desired GID exists
+existing_group=$(getent group "$PGID" | cut -d: -f1)
+
+if [ -z "$existing_group" ]; then
     addgroup -g "$PGID" capmqtt
+    capmqtt_group="capmqtt"
+else
+    echo "Group with GID $PGID already exists: $existing_group"
+    capmqtt_group="$existing_group"
 fi
 
-# Create user if it doesn't exist
+# Check if user exists
 if ! id capmqtt >/dev/null 2>&1; then
-    adduser -D -u "$PUID" -G capmqtt capmqtt
+    adduser -D -u "$PUID" -G "$capmqtt_group" capmqtt
 fi
 
-# Ensure ownership of volumes
+# Fix ownership of mounted volumes
 chown -R "$PUID:$PGID" /mosquitto/config /mosquitto/data /mosquitto/log
 
-# Fix pwfile if it exists
+# Fix pwfile permissions
 if [ -f /mosquitto/config/pwfile ]; then
     chown "$PUID:$PGID" /mosquitto/config/pwfile
     chmod 0700 /mosquitto/config/pwfile
