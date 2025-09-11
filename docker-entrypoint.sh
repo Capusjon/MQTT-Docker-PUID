@@ -1,20 +1,25 @@
 #!/bin/sh
 set -e
 
-# Default values
 PUID=${PUID:-1000}
 PGID=${PGID:-1000}
 
-# Change mosquitto user/group IDs
-if [ "$(id -u mosquitto)" != "$PUID" ]; then
-    echo "Setting mosquitto UID to $PUID"
-    deluser mosquitto
+# Check if group exists; if not, create it
+if ! getent group mosquitto >/dev/null 2>&1; then
     addgroup -g "$PGID" mosquitto
-    adduser -D -u "$PUID" -G mosquitto mosquitto
 fi
 
-# Adjust permissions of config/data/log folders
+# Check if user exists; if not, create it
+if ! id -u mosquitto >/dev/null 2>&1; then
+    adduser -D -u "$PUID" -G mosquitto mosquitto
+else
+    # If the user exists, modify UID/GID
+    usermod -u "$PUID" mosquitto
+    groupmod -g "$PGID" mosquitto
+fi
+
+# Ensure proper ownership of mounted volumes
 chown -R "$PUID:$PGID" /mosquitto/config /mosquitto/data /mosquitto/log
 
-# Execute the original CMD as mosquitto user
+# Run Mosquitto as this user
 exec su-exec mosquitto "$@"
