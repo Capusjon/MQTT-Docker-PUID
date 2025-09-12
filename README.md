@@ -1,6 +1,8 @@
 # ﻿MQTT-Docker-PUID
 Custom Eclipse Mosquitto Docker image with dynamic user/group IDs.
 
+https://hub.docker.com/r/capusjon/mqtt-docker-puid
+
 --------------------------------------------------------------------
 --
 
@@ -48,5 +50,6 @@ persistence_interval 60 (for testing only, afterwards revert to a timing you fin
 
 You can find these settings commented out in the default conf file.
 Use this conf file if no file is present in your config folder https://github.com/Capusjon/MQTT-Docker-PUID/blob/main/mosquitto/config/mosquitto.conf
+
 
 
