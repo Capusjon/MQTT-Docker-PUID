@@ -1,0 +1,3 @@
+# Shellscripts altijd met LF-regeleindes, ook als je op Windows commit
+*.sh text eol=lf
+Dockerfile text eol=lf

@@ -1,0 +1,68 @@
+name: Build en push Docker image
+
+on:
+  # Bij elke push naar main (bijv. via GitHub Desktop)
+  push:
+    branches: [main]
+  # Elke maandag 04:23 UTC opnieuw bouwen, zodat upstream- en Alpine-patches meekomen
+  schedule:
+    - cron: "23 4 * * 1"
+  # Handmatig starten via het tabblad Actions
+  workflow_dispatch:
+
+env:
+  IMAGE: capusjon/mqtt-docker-puid
+  BASE_IMAGE: eclipse-mosquitto:2.1-alpine
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Mosquitto-versie uit de base image lezen
+        id: ver
+        run: |
+          docker pull "$BASE_IMAGE"
+          out=$(docker run --rm --entrypoint mosquitto "$BASE_IMAGE" -h 2>&1 || true)
+          v=$(printf '%s\n' "$out" | sed -n '/^mosquitto version/{s/^mosquitto version \([0-9][0-9.]*\).*/\1/p;q}')
+          echo "Gevonden Mosquitto-versie: ${v:-onbekend}"
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+
+      - name: Tags en labels bepalen
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE }}
+          tags: |
+            type=raw,value=latest
+            type=raw,value=2.1
+            type=raw,value=${{ steps.ver.outputs.version }},enable=${{ steps.ver.outputs.version != '' }}
+
+      - name: QEMU instellen (voor ARM-builds)
+        uses: docker/setup-qemu-action@v3
+
+      - name: Buildx instellen
+        uses: docker/setup-buildx-action@v3
+
+      - name: Inloggen op Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Bouwen en pushen
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64,linux/arm/v6
+          build-args: |
+            BASE_IMAGE=${{ env.BASE_IMAGE }}
+          pull: true
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
