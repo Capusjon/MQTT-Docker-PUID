@@ -44,7 +44,7 @@ jobs:
             type=raw,value=${{ steps.ver.outputs.version }},enable=${{ steps.ver.outputs.version != '' }}
 
       - name: QEMU instellen (voor ARM-builds)
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
 
       - name: Buildx instellen
         uses: docker/setup-buildx-action@v3
